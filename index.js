@@ -104,7 +104,7 @@ class ProductManager {
       throw new Error("El producto no existe");
     }
 
-    //El resultado es un arreglo, por lo tanto, lo convierto en objeto y lo imprimo por consola
+    //Imprimo el resultado de arreglo a objeto
     console.log("deleteProduct: ", result[0]);
 
     //Creo un nuevo arreglo con los productos que no coinciden con el id
@@ -113,12 +113,12 @@ class ProductManager {
     //Declaro la direccion del path
     const path = this.path;
 
-    //Guardos los productos actualizados en el archivo productos.txt pero los sobreescribo
     await fs.writeFile(
       path,
       JSON.stringify(this.#products, null, "\t"),
       "utf-8"
     );
+    
     //Actualizo el arreglo de productos
     this.#products = newProducts;
 
@@ -157,8 +157,10 @@ manager.addProduct(
 //Pruebo el método getProducts
 // manager.getProducts();
 
+
 //Pruebo el método getProductById
 // manager.getProductById(1);
+
 
 //Pruebo el método updateProduct
 // manager.updateProduct(1, {
@@ -171,5 +173,6 @@ manager.addProduct(
 //   stock: 150,
 // });
 
+
 //Pruebo el método deleteProduct
-manager.deleteProduct(1);
+// manager.deleteProduct(1);
