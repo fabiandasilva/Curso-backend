@@ -4,7 +4,7 @@ class ProductManager {
   #products = [];
 
   constructor() {
-    this.path = "./productos.txt";
+    this.path = "./db.json";
   }
 
   async addProduct(title, description, price, thumbnail, code, stock) {
@@ -34,16 +34,12 @@ class ProductManager {
     //Declaro la direccion del path
     const path = this.path;
 
-    //Guardo los productos agregados en el archivo productos.txt pero no los sobreescribo
-    await fs.writeFile(
-      path,
-      JSON.stringify(this.#products, null, "\t"),
-      "utf-8"
-    );
+    //Guardo los productos agregados en el archivo db.json pero no los sobreescribo
+    await this.updateFile();
   }
 
   async getProducts() {
-    //Leo el archivo productos.txt
+    //Leo el archivo db.json
     const data = await fs.readFile(this.path, "utf-8");
 
     //Si el archivo está vacio, emito un error
@@ -53,8 +49,9 @@ class ProductManager {
 
     console.log("getProducts: ", data);
   }
+
   async getProductById(id) {
-    //Busco el producto por id en el archivo productos.txt
+    //Busco el producto por id en el archivo db.json
     const result = this.#products.filter((product) => product.id === id);
 
     //Si el producto no existe, emito un error
@@ -67,7 +64,7 @@ class ProductManager {
   }
 
   async updateProduct(id, obj) {
-    //Busco el producto por id en el archivo productos.txt
+    //Busco el producto por id en el archivo db.json
     const result = this.#products.filter((product) => product.id === id);
 
     //Si el producto no existe, emito un error
@@ -87,16 +84,12 @@ class ProductManager {
     //Declaro la direccion del path
     const path = this.path;
 
-    //Guardo los productos agregados en el archivo productos.txt pero no los sobreescribo
-    await fs.writeFile(
-      path,
-      JSON.stringify(this.#products, null, "\t"),
-      "utf-8"
-    );
+    //Guardo los productos agregados en el archivo db.json pero no los sobreescribo
+    await this.updateFile();
   }
 
   async deleteProduct(id) {
-    //Busco el producto por id en el archivo productos.txt
+    //Busco el producto por id en el archivo db.json
     const result = this.#products.filter((product) => product.id === id);
 
     //Si el producto no existe, emito un error
@@ -113,21 +106,21 @@ class ProductManager {
     //Declaro la direccion del path
     const path = this.path;
 
-    await fs.writeFile(
-      path,
-      JSON.stringify(this.#products, null, "\t"),
-      "utf-8"
-    );
-    
+    await this.updateFile();
+
     //Actualizo el arreglo de productos
     this.#products = newProducts;
 
     //Imprimo el arreglo de productos actualizado
     console.log("deleteProduct actualizado: ", this.#products);
 
-    //Guardos los productos actualizados en el archivo productos.txt pero los sobreescribo
+    //Guardos los productos actualizados en el archivo db.json pero los sobreescribo
+    await this.updateFile();
+  }
+
+  async updateFile() {
     await fs.writeFile(
-      path,
+      this.path,
       JSON.stringify(this.#products, null, "\t"),
       "utf-8"
     );
@@ -136,31 +129,29 @@ class ProductManager {
 
 //Pruebo el método addProduct
 const manager = new ProductManager();
-manager.addProduct(
-  "Casa",
-  "Regla de plástico transparente",
-  89.99,
-  "https://cdn3.iconfinder.com/data/icons/education-209/64/ruler-triangle-stationary-school-256.png",
-  "REG2",
-  15
-);
+// manager.addProduct(
+//   "Casa",
+//   "Regla de plástico transparente",
+//   89.99,
+//   "https://cdn3.iconfinder.com/data/icons/education-209/64/ruler-triangle-stationary-school-256.png",
+//   "REG2",
+//   15
+// );
 
-manager.addProduct(
-  "Compás",
-  "Compás de metal",
-  199.99,
-  "https://cdn3.iconfinder.com/data/icons/education-209/64/ruler-triangle-stationary-school-256.png",
-  "COM1",
-  10
-);
+// manager.addProduct(
+//   "Compás",
+//   "Compás de metal",
+//   199.99,
+//   "https://cdn3.iconfinder.com/data/icons/education-209/64/ruler-triangle-stationary-school-256.png",
+//   "COM1",
+//   10
+// );
 
 //Pruebo el método getProducts
 // manager.getProducts();
 
-
 //Pruebo el método getProductById
 // manager.getProductById(1);
-
 
 //Pruebo el método updateProduct
 // manager.updateProduct(1, {
@@ -172,7 +163,6 @@ manager.addProduct(
 //   code: "REG2s",
 //   stock: 150,
 // });
-
 
 //Pruebo el método deleteProduct
 // manager.deleteProduct(1);
