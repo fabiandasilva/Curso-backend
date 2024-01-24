@@ -1,6 +1,6 @@
 const express = require("express");
 const productsRoutes = require("./routes/products.routes");
-const PORT = 3000;
+const PORT = 8080;
 const API_BASE_PATH = "/api";
 
 const ProductManager = require("./productManager");
