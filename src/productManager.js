@@ -4,45 +4,74 @@ class ProductManager {
   #products = [];
 
   constructor() {
-    this.path = "./db.json";
+    this.path = "./product.db.json";
+    this.loadProducts();
   }
 
-  async addProduct(title, description, price, thumbnail, code, stock) {
-    //Verifico que todos los campos sean obligatorios
-    if (!title || !description || !price || !thumbnail || !code || !stock) {
+  async loadProducts() {
+    try {
+      const data = await fs.readFile(this.path, "utf-8");
+      this.#products = JSON.parse(data);
+    } catch (error) {
+      console.error("Error al cargar los productos:", error);
+    }
+  }
+
+  async addProduct(
+    title,
+    description,
+    price,
+    thumbnail,
+    category,
+    code,
+    stock,
+    status
+  ) {
+    price = Number(price);
+    stock = Number(stock);
+
+    if (isNaN(price) || isNaN(stock)) {
+      throw new Error("Price and stock must be valid numbers");
+    }
+
+    if (
+      !title ||
+      !description ||
+      !price ||
+      !thumbnail ||
+      !category ||
+      !code ||
+      !stock
+    ) {
       throw new Error("Todos los campos son obligatorios");
     }
 
-    //Verifico que no se repita el campo code
     const result = this.#products.filter((product) => product.code === code);
-    //Si el campo code se repite, emito un error
-    if (result.length > 1) {
+
+    if (result.length > 0) {
       throw new Error("El código del producto ya existe");
     }
 
-    //Agrego los productos al arreglo vacio de products
     this.#products.push({
       title,
       description,
       price,
       thumbnail,
+      category,
       code,
       stock,
+      status,
       id: this.#products.length + 1,
     });
 
-    //Declaro la direccion del path
     const path = this.path;
 
-    //Guardo los productos agregados en el archivo db.json pero no los sobreescribo
     await this.updateFile();
   }
 
   async getProducts() {
-    //Leo el archivo db.json
     const data = await fs.readFile(this.path, "utf-8");
 
-    //Si el archivo está vacio, emito un error
     if (data.length === 0) {
       throw new Error("No hay productos cargados");
     }
@@ -51,23 +80,18 @@ class ProductManager {
   }
 
   async getProductById(id) {
-    //Busco el producto por id en el archivo db.json
     const result = this.#products.filter((product) => product.id === id);
 
-    //Si el producto no existe, emito un error
     if (result.length === 0) {
       throw new Error("El producto no existe");
     }
 
-    //Devuelvo el resultado en formato objeto
     console.log("getProductById: ", result[0]);
   }
 
   async updateProduct(id, obj) {
-    //Busco el producto por id en el archivo db.json
     const result = this.#products.filter((product) => product.id === id);
 
-    //Si el producto no existe, emito un error
     if (result.length === 0) {
       throw new Error("El producto no existe");
     }
@@ -78,43 +102,34 @@ class ProductManager {
     product.description = obj.description;
     product.price = obj.price;
     product.thumbnail = obj.thumbnail;
+    product.category = obj.category;
     product.code = obj.code;
     product.stock = obj.stock;
 
-    //Declaro la direccion del path
     const path = this.path;
 
-    //Guardo los productos agregados en el archivo db.json pero no los sobreescribo
     await this.updateFile();
   }
 
   async deleteProduct(id) {
-    //Busco el producto por id en el archivo db.json
     const result = this.#products.filter((product) => product.id === id);
 
-    //Si el producto no existe, emito un error
     if (result.length === 0) {
       throw new Error("El producto no existe");
     }
 
-    //Imprimo el resultado de arreglo a objeto
     console.log("deleteProduct: ", result[0]);
 
-    //Creo un nuevo arreglo con los productos que no coinciden con el id
     const newProducts = this.#products.filter((product) => product.id !== id);
 
-    //Declaro la direccion del path
     const path = this.path;
 
     await this.updateFile();
 
-    //Actualizo el arreglo de productos
     this.#products = newProducts;
 
-    //Imprimo el arreglo de productos actualizado
     console.log("deleteProduct actualizado: ", this.#products);
 
-    //Guardos los productos actualizados en el archivo db.json pero los sobreescribo
     await this.updateFile();
   }
 
@@ -127,42 +142,4 @@ class ProductManager {
   }
 }
 
-//Pruebo el método addProduct
-const manager = new ProductManager();
-// manager.addProduct(
-//   "Casa",
-//   "Regla de plástico transparente",
-//   89.99,
-//   "https://cdn3.iconfinder.com/data/icons/education-209/64/ruler-triangle-stationary-school-256.png",
-//   "REG2",
-//   15
-// );
-
-// manager.addProduct(
-//   "Compás",
-//   "Compás de metal",
-//   199.99,
-//   "https://cdn3.iconfinder.com/data/icons/education-209/64/ruler-triangle-stationary-school-256.png",
-//   "COM1",
-//   10
-// );
-
-//Pruebo el método getProducts
-// manager.getProducts();
-
-//Pruebo el método getProductById
-// manager.getProductById(1);
-
-//Pruebo el método updateProduct
-// manager.updateProduct(1, {
-//   title: "Regla de plástico transparente",
-//   description: "Regla de plástico transparentes",
-//   price: 89.992,
-//   thumbnail:
-//     "https://cdn3.iconfinder.com/data/icons/education-209/64/ruler-triangle-stationary-school-256.png",
-//   code: "REG2s",
-//   stock: 150,
-// });
-
-//Pruebo el método deleteProduct
-// manager.deleteProduct(1);
+module.exports = ProductManager;
