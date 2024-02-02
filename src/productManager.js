@@ -31,7 +31,7 @@ class ProductManager {
     stock = Number(stock);
 
     if (isNaN(price) || isNaN(stock)) {
-      throw new Error("Price and stock must be valid numbers");
+      throw new Error("Precio y stock deben ser números");
     }
 
     if (
