@@ -24,7 +24,7 @@ class CartManager {
       throw new Error("No hay productos cargados");
     }
 
-    console.log("getProducts: ", data);
+    return JSON.parse(data);
   }
 
   async getProductInCartById(id) {
@@ -38,7 +38,7 @@ class CartManager {
       throw new Error("El carrito no existe");
     }
 
-    console.log("getProductInCartById: ", JSON.stringify(result[0], null, 2));
+    return result;
   }
 
   async createCart() {
@@ -72,6 +72,8 @@ class CartManager {
     }
 
     this.updateFile();
+
+    return cart;
   }
 
   async updateFile() {
