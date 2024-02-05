@@ -19,7 +19,7 @@ app.use("/static", express.static(__dirname + "/../public"));
 app.engine("handlebars", handlebars.engine());
 app.set("views", path.join(__dirname, "./views/"));
 app.set("view engine", "handlebars");
-app.get("/home", (req, res) => {
+app.get("/realtimeproducts", (req, res) => {
   res.render("home");
 });
 // Fin de integracion de handlebars
@@ -32,12 +32,14 @@ const io = new Server(httpServer);
 
 io.on("connection", (socket) => {
   console.log(socket.id + "Usuario conectado");
+
+  socket.on("new-product", (product) => {
+    console.log("Nuevo producto recibido:", product);
+    io.emit("update-products", product);
+  });
+
   socket.on("disconnect", () => {
     console.log(socket.id + "Usuario desconectado");
-  });
-  socket.on("chat message", (msg) => {
-    console.log("message: " + msg);
-    io.emit("chat message", msg);
   });
 });
 // Fin de integracion de socket.io

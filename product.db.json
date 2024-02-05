@@ -24,5 +24,49 @@
 		"stock": 10,
 		"status": true,
 		"id": 3
+	},
+	{
+		"title": "Samsung ",
+		"description": "Samsung ",
+		"price": 21,
+		"thumbnail": "Samsung ",
+		"category": "dSamsung ",
+		"code": "Samsung ",
+		"stock": 2,
+		"status": true,
+		"id": 3
+	},
+	{
+		"title": "S23",
+		"description": "S23",
+		"price": 2,
+		"thumbnail": "S23",
+		"category": "S23",
+		"code": "S23",
+		"stock": 3,
+		"status": true,
+		"id": 5
+	},
+	{
+		"title": "Apple ",
+		"description": "Apple ",
+		"price": 2,
+		"thumbnail": "Apple ",
+		"category": "Apple ",
+		"code": "Apple ",
+		"stock": 2,
+		"status": true,
+		"id": 6
+	},
+	{
+		"title": "Producto",
+		"description": "Descripción",
+		"price": 23,
+		"thumbnail": "Imagen",
+		"category": "Categoria",
+		"code": "Código",
+		"stock": 23,
+		"status": true,
+		"id": 7
 	}
 ]

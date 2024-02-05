@@ -3,24 +3,182 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>My Website</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 </head>
 
-<body>
-    <header>
-        <h1>Welcome to My Website</h1>
-    </header>
-    <main>
-        {{{body}}}
-    </main>
-    <footer>
-        <p>&copy; 2024 My Website. All rights reserved.</p>
-    </footer>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center flex-col">
+    {{{body}}}
+
+
+
+    {{!-- Formulario --}}
+    <div class="bg-white p-8 rounded shadow-md w-96">
+        <h2 class="text-2xl font-semibold mb-6">Agregar Producto</h2>
+
+        <form method="POST" enctype="multipart/form-data">
+            <div class="mb-4">
+                <label for="title" class="block text-gray-600 text-sm font-medium mb-2">Nombre</label>
+                <input type="text" id="title" name="title"
+                    class="w-full px-3 py-2 border rounded-md focus:outline-none focus:border-blue-500" required>
+            </div>
+
+            <div class="mb-4">
+                <label for="description" class="block text-gray-600 text-sm font-medium mb-2">Descripción</label>
+                <textarea id="description" name="description" rows="4"
+                    class="w-full px-3 py-2 border rounded-md focus:outline-none focus:border-blue-500"
+                    required></textarea>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div class="mb-4">
+                    <label for="price" class="block text-gray-600 text-sm font-medium mb-2">Precio</label>
+                    <input type="number" id="price" name="price"
+                        class="w-full px-3 py-2 border rounded-md focus:outline-none focus:border-blue-500" required>
+                </div>
+
+                <div class="mb-4">
+                    <label for="code" class="block text-gray-600 text-sm font-medium mb-2">Código</label>
+                    <input type="text" id="code" name="code"
+                        class="w-full px-3 py-2 border rounded-md focus:outline-none focus:border-blue-500" required>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div class="mb-4">
+                    <label for="price" class="block text-gray-600 text-sm font-medium mb-2">Categoria</label>
+                    <input type="text" id="category" name="category"
+                        class="w-full px-3 py-2 border rounded-md focus:outline-none focus:border-blue-500" required>
+                </div>
+
+                <div class="mb-4">
+                    <label for="stock" class="block text-gray-600 text-sm font-medium mb-2">Stock</label>
+                    <input type="number" id="stock" name="stock"
+                        class="w-full px-3 py-2 border rounded-md focus:outline-none focus:border-blue-500" required>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <label for="thumbnail" class="block text-gray-600 text-sm font-medium mb-2">Imagen</label>
+                <input type="text" id="thumbnail" name="thumbnail"
+                    class="w-full px-3 py-2 border rounded-md focus:outline-none focus:border-blue-500" required>
+            </div>
+
+            <button type="submit"
+                class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 focus:outline-none focus:shadow-outline-blue active:bg-blue-800">
+                Agregar Producto
+            </button>
+        </form>
+    </div>
+    {{!-- Fin --}}
+
+
     <script src="/socket.io/socket.io.js"></script>
-    <script>var socket = io();
-        socket.on('message', function (message) {
-            console.log('Mensaje del servidor: ' + message);
-        });</script>
+    <script>
+        var socket = io();
+
+
+        document.querySelector('form').addEventListener('submit', function (event) {
+            event.preventDefault();
+            const title = document.getElementById('title').value;
+            const description = document.getElementById('description').value;
+            const price = document.getElementById('price').value;
+            const code = document.getElementById('code').value;
+            const category = document.getElementById('category').value;
+            const stock = document.getElementById('stock').value;
+            const thumbnail = document.getElementById('thumbnail').value;
+
+
+            console.log('Valores del formulario:', title, description, price, code, category, stock, thumbnail);
+
+            const newProduct = {
+                title,
+                description,
+                price,
+                code,
+                category,
+                stock,
+                thumbnail
+            };
+
+            console.log('Nuevo producto:', newProduct);
+
+            fetch('http://localhost:3000/api/products/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(newProduct)
+            })
+                .then(response => response.json())
+                .then(newProduct => {
+                    console.log('Respuesta del servidor:', newProduct);
+                    socket.emit('new-product', newProduct);
+                })
+                .catch(error => console.error('Error al agregar producto:', error));
+
+        });
+
+
+
+
+
+        socket.on('connection', (socket) => {
+            console.log('Nuevo cliente conectado');
+
+            socket.on('new-product', (product) => {
+                console.log('Nuevo producto recibido:', product);
+                socket.emit('update-products', product);
+            });
+        });
+
+
+
+
+        window.onload = () => {
+
+            const tableBody = document.querySelector('#productosTable tbody');
+
+
+            fetch('http://localhost:3000/api/products/')
+                .then(response => response.json())
+                .then(data => {
+                    data.products.forEach(product => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                        <td class="py-2 px-4">${product.id}</td>
+                        <td class="py-2 px-4">${product.title}</td>
+                        <td class="py-2 px-4">${product.description}</td>
+                        <td class="py-2 px-4">${product.price}</td>
+                        <td class="py-2 px-4">${product.category}</td>
+                        <td class="py-2 px-4">${product.code}</td>
+                        <td class="py-2 px-4">${product.stock}</td>
+                    `;
+                        tableBody.appendChild(row);
+                    });
+                })
+                .catch(error => console.error('Error al obtener datos de la API:', error));
+
+
+            socket.on('update-products', (product) => {
+                console.log('Producto actualizado:', product);
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                <td class="py-2 px-4">${product.id}</td>
+                <td class="py-2 px-4">${product.title}</td>
+                <td class="py-2 px-4">${product.description}</td>
+                <td class="py-2 px-4">${product.price}</td>
+                <td class="py-2 px-4">${product.category}</td>
+                <td class="py-2 px-4">${product.code}</td>
+                <td class="py-2 px-4">${product.stock}</td>
+            `;
+                tableBody.appendChild(row);
+            });
+
+
+
+        }
+
+    </script>
 </body>
 
 </html>

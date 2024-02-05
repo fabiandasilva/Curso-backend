@@ -1,6 +1,8 @@
 const ProductManager = require("../productManager");
-const DB = require("../../product.db.json")
+const DB = require("../../product.db.json");
+const uploader = require("../utils/multer");
 const manager = new ProductManager();
+const uploaderFile = uploader.array("thumbnail"); // Puedes personalizar las opciones según tus necesidades
 
 exports.getProducts = (req, res) => {
   const limit = req.query.limit || 10;
@@ -21,9 +23,18 @@ exports.getProducts = (req, res) => {
 };
 
 exports.addProduct = async (req, res) => {
-  const { title, description, price, category, code, stock } = req.body;
-  const thumbnail = req.files.map((file) => file.filename);
+  const { title, description, thumbnail, price, category, code, stock } =
+    req.body;
+  // const thumbnail = req.files.map((file) => file.filename);
+  // console.log("Nombre de la imagen", thumbnail);
   const status = true;
+  const priceNumber = Number(price);
+  const stockNumber = Number(stock);
+
+  // Verificar si price y stock son números válidos
+  if (isNaN(priceNumber) || isNaN(stockNumber)) {
+    return res.status(400).send("Precio y stock deben ser números");
+  }
 
   try {
     await manager.addProduct(
