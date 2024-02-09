@@ -9,11 +9,11 @@ const path = require("path");
 const { Server } = require("socket.io");
 
 const app = express();
-app.use(express.json()); // middleware global
+app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.use("/static", express.static(__dirname + "/../public"));
-// console.log("Ruta statica ===>" + __dirname + "/public");
+
 
 //Integro handlebars
 app.engine("handlebars", handlebars.engine());
@@ -31,17 +31,20 @@ const httpServer = app.listen(config.PORT, () => {
 const io = new Server(httpServer);
 
 io.on("connection", (socket) => {
-  console.log(socket.id + "Usuario conectado");
 
-  socket.on("new-product", (product) => {
-    console.log("Nuevo producto recibido:", product);
-    io.emit("update-products", product);
+  socket.on("formulario", (datos) => {
+    console.log("Datos del formulario recibidos:", datos);
+
+    io.emit("update-products", datos);
   });
 
-  socket.on("disconnect", () => {
-    console.log(socket.id + "Usuario desconectado");
+
+  socket.on("error", (error) => {
+    console.log("Error al recibir el evento:", error);
   });
+
 });
+
 // Fin de integracion de socket.io
 
 app.use(`${API_BASE_PATH}/products`, productsRoutes);
@@ -51,12 +54,7 @@ app.get("/", (req, res) => {
   res.send(`Bienvenido!`);
 });
 
-// app.listen(config.PORT, () => {
-//   console.log(`Servidor corriendo en ==> ${config.DOMAIN}:${config.PORT}`);
-// });
+
 
 app.use(errorHandler);
 
-// app.get("*", (req, res) => {
-//   res.send("404 Page Not Found");
-// });
