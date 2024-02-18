@@ -1,11 +1,13 @@
-const ProductManager = require("../productManager");
-const DB = require("../../product.db.json");
+const ProductManager = require("../dao/productManager");
 const uploader = require("../utils/multer");
+const productsModel = require("../dao/models/product.model");
 const manager = new ProductManager();
-const uploaderFile = uploader.array("thumbnail"); // Puedes personalizar las opciones según tus necesidades
+const uploaderFile = uploader.array("thumbnail");
 
-exports.getProducts = (req, res) => {
+exports.getProducts = async (req, res) => {
   const limit = req.query.limit || 10;
+
+  let products = await productsModel.find().limit(Number(limit));
 
   if (isNaN(limit)) {
     return res.status(400).json({
@@ -18,20 +20,41 @@ exports.getProducts = (req, res) => {
   }
 
   return res.status(200).json({
-    products: DB.slice(0, limit),
+    mesaage: "Productos obtenidos exitosamente",
+    products: products,
   });
+};
+
+exports.getProductById = async (req, res) => {
+  const id = req.params.pid;
+  try {
+    const product = await productsModel.findById({ _id: id });
+    return res.status(200).json({
+      mesaage: "Producto obtenido exitosamente",
+      product: product,
+    });
+  } catch (error) {
+    console.error("Error en la ruta GET /:id:", error);
+    res.status(500).json({ error: error.message });
+  }
 };
 
 exports.addProduct = async (req, res) => {
   const { title, description, thumbnail, price, category, code, stock } =
     req.body;
-  // const thumbnail = req.files.map((file) => file.filename);
-  // console.log("Nombre de la imagen", thumbnail);
   const status = true;
   const priceNumber = Number(price);
   const stockNumber = Number(stock);
+  const codeExist = await productsModel.findOne({
+    code: code,
+  });
 
-  // Verificar si price y stock son números válidos
+  if (codeExist) {
+    return res.status(400).json({
+      error: "El código ya existe",
+    });
+  }
+
   if (isNaN(priceNumber) || isNaN(stockNumber)) {
     return res.status(400).send("Precio y stock deben ser números");
   }
@@ -59,22 +82,25 @@ exports.addProduct = async (req, res) => {
 };
 
 exports.updateProduct = async (req, res) => {
-  const id = Number(req.params.pid);
+  const id = req.params.pid;
   const { title, description, price, thumbnail, code, category, stock } =
     req.body;
+  const newProductToReplace = {
+    title,
+    description,
+    price,
+    thumbnail,
+    code,
+    category,
+    stock,
+  };
 
   try {
-    await manager.updateProduct(id, {
-      title,
-      description,
-      price,
-      thumbnail,
-      code,
-      category,
-      stock,
-    });
+    await productsModel.updateOne({ _id: id }, newProductToReplace);
+    await manager.updateProduct(id, newProductToReplace);
     return res.status(200).json({
       message: "Producto actualizado exitosamente",
+      Actualizado: newProductToReplace,
     });
   } catch (error) {
     console.error("Error en la ruta PUT:", error);
@@ -85,9 +111,10 @@ exports.updateProduct = async (req, res) => {
 };
 
 exports.deleteProduct = async (req, res) => {
-  const id = Number(req.params.pid);
+  const id = req.params.pid;
 
   try {
+    await productsModel.deleteOne({ _id: id });
     await manager.deleteProduct(id);
     return res.status(200).json({
       message: "Producto eliminado exitosamente",
@@ -98,19 +125,4 @@ exports.deleteProduct = async (req, res) => {
       error: error.message,
     });
   }
-};
-
-exports.getProductById = (req, res) => {
-  const id = Number(req.params.pid);
-  const product = DB.find((product) => product.id === id);
-
-  if (!product) {
-    return res.status(404).json({
-      error: "Producto no encontrado",
-    });
-  }
-
-  return res.status(200).json({
-    product,
-  });
 };

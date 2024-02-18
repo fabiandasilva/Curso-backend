@@ -1,28 +1,28 @@
 [
 	{
-		"title": "Apple MacBook Pro 16",
+		"title": "Nuevo producto ficticio",
 		"description": "Tiene una pantalla envolvente, procesadores superrápidos, gráficos de última generación, un nuevo teclado Magic Keyboard y un increíble espacio de almacenamiento.",
 		"price": 6240239,
 		"thumbnail": [
 			"1706413562450-MacBookPro_16_plata_002.jpg"
 		],
 		"category": "Laptop",
-		"code": "AMP16",
+		"code": "New",
 		"stock": 50,
-		"status": true,
-		"id": 2
+		"status": "true",
+		"_id": "65d16d49037e743151295865"
 	},
 	{
-		"title": "Samsung Galaxy S23",
-		"description": "Con su potente procesador y memoria RAM de 8 GB tu equipo alcanzará un alto rendimiento con gran velocidad de transmisión de contenidos y ejecutará múltiples aplicaciones a la vez sin demoras.",
-		"price": 803849,
+		"title": "Nuew",
+		"description": "Tiene una pantalla envolvente, procesadores superrápidos, gráficos de última generación, un nuevo teclado Magic Keyboard y un increíble espacio de almacenamiento.",
+		"price": 11,
 		"thumbnail": [
-			"1706413844073-D_NQ_NP_905933-MLU73140758341_112023-O.webp"
+			"1706413562450-MacBookPro_16_plata_002.jpg"
 		],
-		"category": "Celular",
-		"code": "SGS23",
-		"stock": 10,
-		"status": true,
-		"id": 3
+		"category": "Laptop",
+		"code": "NewOld",
+		"stock": 50,
+		"status": "true",
+		"_id": "65d17d900ee7769edeba9d0b"
 	}
 ]

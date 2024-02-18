@@ -1,3 +1,5 @@
+const productsModel = require("./models/product.model");
+
 const fs = require("fs").promises;
 
 class ProductManager {
@@ -17,6 +19,24 @@ class ProductManager {
     }
   }
 
+  async getProducts() {
+    const data = await fs.readFile(this.path, "utf-8");
+
+    if (data.length === 0) {
+      throw new Error("No hay productos cargados");
+    }
+  }
+
+  async getProductById(id) {
+    const result = this.#products.filter((product) => product._id === id);
+
+    if (result.length === 0) {
+      throw new Error("El producto no existe");
+    }
+
+    console.log("getProductById: ", result[0]);
+  }
+
   async addProduct(
     title,
     description,
@@ -27,76 +47,38 @@ class ProductManager {
     stock,
     status
   ) {
-    price = Number(price);
-    stock = Number(stock);
+    try {
+      const newProduct = new productsModel({
+        title,
+        description,
+        price: Number(price),
+        thumbnail,
+        category,
+        code,
+        stock: Number(stock),
+        status,
+      });
 
-    if (isNaN(price) || isNaN(stock)) {
-      throw new Error("Precio y stock deben ser números");
+      this.#products.push(newProduct);
+
+      await this.updateFile();
+
+      await newProduct.save();
+
+      console.log("Producto añadido exitosamente:", newProduct);
+    } catch (error) {
+      console.error("Error al agregar el producto:", error.message);
+      throw error;
     }
-
-    if (
-      !title ||
-      !description ||
-      !price ||
-      !thumbnail ||
-      !category ||
-      !code ||
-      !stock
-    ) {
-      throw new Error("Todos los campos son obligatorios");
-    }
-
-    const result = this.#products.filter((product) => product.code === code);
-
-    if (result.length > 0) {
-      throw new Error("El código del producto ya existe");
-    }
-
-    this.#products.push({
-      title,
-      description,
-      price,
-      thumbnail,
-      category,
-      code,
-      stock,
-      status,
-      id: this.#products.length + 1,
-    });
-
-    const path = this.path;
-
-    await this.updateFile();
-  }
-
-  async getProducts() {
-    const data = await fs.readFile(this.path, "utf-8");
-
-    if (data.length === 0) {
-      throw new Error("No hay productos cargados");
-    }
-
-    console.log("getProducts: ", data);
-  }
-
-  async getProductById(id) {
-    const result = this.#products.filter((product) => product.id === id);
-
-    if (result.length === 0) {
-      throw new Error("El producto no existe");
-    }
-
-    console.log("getProductById: ", result[0]);
   }
 
   async updateProduct(id, obj) {
-    const result = this.#products.filter((product) => product.id === id);
+    const result = this.#products.filter((product) => product._id === id);
 
     if (result.length === 0) {
       throw new Error("El producto no existe");
     }
 
-    //Actualizo el producto
     const product = result[0];
     product.title = obj.title;
     product.description = obj.description;
@@ -106,13 +88,11 @@ class ProductManager {
     product.code = obj.code;
     product.stock = obj.stock;
 
-    const path = this.path;
-
     await this.updateFile();
   }
 
   async deleteProduct(id) {
-    const result = this.#products.filter((product) => product.id === id);
+    const result = this.#products.filter((product) => product._id === id);
 
     if (result.length === 0) {
       throw new Error("El producto no existe");
@@ -120,9 +100,7 @@ class ProductManager {
 
     console.log("deleteProduct: ", result[0]);
 
-    const newProducts = this.#products.filter((product) => product.id !== id);
-
-    const path = this.path;
+    const newProducts = this.#products.filter((product) => product._id !== id);
 
     await this.updateFile();
 

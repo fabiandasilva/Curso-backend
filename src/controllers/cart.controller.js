@@ -1,5 +1,6 @@
-const { json } = require("express");
-const CartManager = require("../cartManager");
+const CartManager = require("../dao/cartManager");
+const cartsModel = require("../dao/models/carts.model");
+const productsModel = require("../dao/models/product.model");
 const cartManager = new CartManager();
 
 exports.getProductsInCart = async (req, res) => {
@@ -15,8 +16,10 @@ exports.getProductsInCart = async (req, res) => {
 };
 
 exports.getProductInCartById = async (req, res) => {
+  const { id } = req.params;
+
   try {
-    const carts = await cartManager.getProductInCartById(req.params.id);
+    const carts = await cartsModel.findById(id);
     return res.status(200).json({
       message: "Carrito encontrado",
       data: carts,
@@ -35,18 +38,13 @@ exports.createCart = async (req, res) => {
   }
 };
 
-exports.addProductInCart = (req, res) => {
+exports.addProductInCart = async (req, res) => {
+  const { cid, pid } = req.params;
+
   try {
-    const cartId = Number(req.params.cid);
-    const productId = Number(req.params.pid);
-
-    cartManager.addProductInCart(cartId, productId);
-
-    return res.status(200).json({
-      message: "Producto agregado exitosamente",
-    });
+    await cartManager.addProductInCart(cid, pid);
+    res.status(201).json({ message: "Producto agregado al carrito" });
   } catch (error) {
-    console.error("Error en la ruta POST:", error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ message: error.message });
   }
 };
