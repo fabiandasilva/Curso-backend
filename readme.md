@@ -7,13 +7,15 @@
 
 - [✅] Agregar el modelo de persistencia de Mongo y mongoose a tu proyecto.
   Con base en nuestra implementación actual de productos, modificar el método GET / para que cumpla con los siguientes puntos:
+  
   Deberá poder recibir por query params un limit (opcional), una page (opcional), un sort (opcional) y un query (opcional)
-  -limit permitirá devolver sólo el número de elementos solicitados al momento de la petición, en caso de no recibir limit, éste será de 10.
-  -Page permitirá devolver la página que queremos buscar, en caso de no recibir page, ésta será de 1
-  -query, el tipo de elemento que quiero buscar (es decir, qué filtro aplicar), en caso de no recibir query, realizar la búsqueda general
-  -Sort: asc/desc, para realizar ordenamiento ascendente o descendente por precio, en caso de no recibir sort, no realizar ningún ordenamiento
+  - [✅] limit permitirá devolver sólo el número de elementos solicitados al momento de la petición, en caso de no recibir limit, éste será de 10.
+  - [✅] Page permitirá devolver la página que queremos buscar, en caso de no recibir page, ésta será de 1
+  - [] Query, el tipo de elemento que quiero buscar (es decir, qué filtro aplicar), en caso de no recibir query, realizar la búsqueda general
+  - [] Sort: asc/desc, para realizar ordenamiento ascendente o descendente por precio, en caso de no recibir sort, no realizar ningún ordenamiento
 
-[] El método GET deberá devolver un objeto con el siguiente formato:
+[✅] El método GET deberá devolver un objeto con el siguiente formato:
+
 ```
 {
   status:success/error

@@ -1,5 +1,5 @@
-const express = require("express");
 require("dotenv").config();
+const express = require("express");
 const mongoose = require("mongoose");
 const productsRoutes = require("./routes/products.routes");
 const cartsRoutes = require("./routes/cart.routes");
@@ -10,7 +10,7 @@ const API_BASE_PATH = "/api";
 const path = require("path");
 const displayRoutes = require("express-routemap");
 const { PORT, HOST, DB_PORT, DB_NAME } = require("./config/constant");
-const { Server } = require("socket.io");
+const productsModel = require("./dao/models/product.model");
 
 const app = express();
 app.use(express.json());
@@ -25,29 +25,6 @@ app.set("view engine", "handlebars");
 app.get("/chat", (req, res) => {
   res.render("chat");
 });
-// Fin de integracion de handlebars
-
-//Integro socket.io
-// const httpServer = app.listen(PORT, () => {
-//   console.log(`Servidor corriendo en ==> ${HOST}:${PORT}`);
-//   displayRoutes(app);
-// });
-// const io = new Server(httpServer);
-// io.on("connection", (socket) => {
-//   console.log("Nuevo usuario conectado");
-
-//   socket.on("sendMessage", (data) => {
-//     console.log("Mensaje recibido:", data);
-
-//     io.emit("receiveMessage", data);
-//   });
-
-//   socket.on("disconnect", () => {
-//     console.log("Usuario desconectado");
-//   });
-// });
-
-// Fin de integracion de socket.io
 
 app.listen(PORT, () => {
   console.log(`Servidor corriendo en ==> ${HOST}:${PORT}`);
@@ -56,16 +33,24 @@ app.listen(PORT, () => {
 app.use(`${API_BASE_PATH}/products`, productsRoutes);
 app.use(`${API_BASE_PATH}/carts`, cartsRoutes);
 app.use(`${API_BASE_PATH}/message`, messageRoutes);
-// app.use(`${API_BASE_PATH}/students`, studentsRoutes);
 
 app.get("/", (req, res) => {
   res.send(`Bienvenido!`);
 });
 
 const connection = mongoose
-  .connect(`mongodb://${HOST}:${DB_PORT}/${DB_NAME}`)
-  // .connect(process.env.URI_ATLAS)
+  // .connect(`mongodb://${HOST}:${DB_PORT}/${DB_NAME}`)
+  .connect(process.env.URI_ATLAS)
   .then(() => {
+    // let findProducts = productsModel
+    //   .paginate({ category: "Electrónicos" }, { limit: 2, page: 1 })
+    //   .then((result) => {
+    //     console.log("result", result);
+    //   })
+    //   .catch((err) => {
+    //     console.log("err", err);
+    //   });
+
     console.log("Conexión a MongoDB exitosa");
   })
   .catch((err) => {

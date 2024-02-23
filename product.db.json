@@ -24,5 +24,19 @@
 		"stock": 50,
 		"status": "true",
 		"_id": "65d17d900ee7769edeba9d0b"
+	},
+	{
+		"title": "Gallo",
+		"description": "Gallo",
+		"price": 200,
+		"thumbnail": [
+			"Gallo.jpg",
+			"Gallito.jpg"
+		],
+		"category": "Gallo",
+		"code": "Gallo",
+		"stock": 50,
+		"status": "true",
+		"_id": "65d6bba458303193cac13e0b"
 	}
 ]
