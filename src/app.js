@@ -39,8 +39,8 @@ app.get("/", (req, res) => {
 });
 
 const connection = mongoose
-  // .connect(`mongodb://${HOST}:${DB_PORT}/${DB_NAME}`)
-  .connect(process.env.URI_ATLAS)
+  .connect(`mongodb://${HOST}:${DB_PORT}/${DB_NAME}`)
+  // .connect(process.env.URI_ATLAS)
   .then(() => {
     // let findProducts = productsModel
     //   .paginate({ category: "Electrónicos" }, { limit: 2, page: 1 })

@@ -4,48 +4,23 @@ const productsModel = require("../dao/models/product.model");
 const manager = new ProductManager();
 const uploaderFile = uploader.array("thumbnail");
 
-// exports.getProducts = async (req, res) => {
-//   const { page = 1, limit = 10 } = req.query;
-//   const {
-//     products,
-//     totalDocs,
-//     limit: limitPag,
-//     totalPages,
-//     hasPrevPage,
-//     hasNextPage,
-//     nextPage,
-//     prevPage,
-//   } = await productsModel.paginate({}, { page, limit });
-
-//   // let products = await productsModel.find().limit(Number(limit));
-
-//   if (isNaN(limit)) {
-//     return res.status(400).json({
-//       error: "El límite debe ser un número",
-//     });
-//   } else if (limit < 1) {
-//     return res.status(400).json({
-//       error: "El límite debe ser mayor a 0",
-//     });
-//   }
-
-//   return res.status(200).json({
-//     status: "success",
-//     mesaage: "Productos obtenidos exitosamente",
-//     products: products,
-//     length: totalDocs,
-//     limit: limitPag,
-//     page: page,
-//     totalPages,
-//     hasNextPage,
-//     nextPage,
-//     hasPrevPage,
-//     prevPage,
-//   });
-// };
-
 exports.getProducts = async (req, res) => {
-  const { page = 1, limit = 10 } = req.query;
+  const {
+    page = 1,
+    limit = 10,
+    category = "",
+    sort = "asc",
+    price = 0,
+  } = req.query;
+
+  const query = {};
+  if (category) {
+    query.category = category;
+  } else if (price) {
+    query.price = price;
+  }
+
+  const sortOption = sort === "desc" ? { price: -1 } : { price: 1 };
 
   const {
     docs: products,
@@ -56,7 +31,13 @@ exports.getProducts = async (req, res) => {
     hasNextPage,
     nextPage,
     prevPage,
-  } = await productsModel.paginate({}, { page, limit });
+  } = await productsModel.paginate(
+    query,
+    { page, limit, sort: sortOption },
+    { sort: { price: sort } },
+    { price: price },
+    { status: true }
+  );
 
   if (isNaN(limit)) {
     return res.status(400).json({
@@ -71,15 +52,15 @@ exports.getProducts = async (req, res) => {
   return res.status(200).json({
     status: "success",
     mesaage: "Productos obtenidos exitosamente",
-    products: products,
+    payload: products,
+    totalPages,
+    prevPage,
+    nextPage,
+    page: page,
+    hasNextPage,
+    hasPrevPage,
     length: totalDocs,
     limit: limitPag,
-    page: page,
-    totalPages,
-    hasNextPage,
-    nextPage,
-    hasPrevPage,
-    prevPage,
   });
 };
 

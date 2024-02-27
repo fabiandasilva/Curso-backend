@@ -93,6 +93,25 @@ class CartManager {
       } else {
         this.#cart.push(cart);
       }
+    
+
+      await this.updateFile();
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async deleteCart(id) {
+    try {
+      const cart = await cartsModel.findByIdAndDelete(id);
+      if (!cart) {
+        throw new Error("El carrito no existe");
+      }
+
+      const index = this.#cart.findIndex((c) => c._id.toString() === id);
+      if (index !== -1) {
+        this.#cart.splice(index, 1);
+      }
 
       await this.updateFile();
     } catch (error) {

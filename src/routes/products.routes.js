@@ -5,7 +5,10 @@ const productController = require("../controllers/products.controllers");
 
 router.get(`/`, productController.getProducts);
 router.get(`/:pid`, productController.getProductById);
-router.post("/", /* uploader.array("thumbnail"), */ productController.addProduct);
+router.post(
+  "/",
+  /* uploader.array("thumbnail"), */ productController.addProduct
+);
 
 router.put("/:pid", productController.updateProduct);
 router.delete("/:pid", productController.deleteProduct);
