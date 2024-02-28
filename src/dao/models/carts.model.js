@@ -37,7 +37,7 @@ const CartSchema = new mongoose.Schema({
 });
 
 CartSchema.pre("find", function () {
-  this.populate("products.product");
+  this.populate("products");
 });
 
 const cartsModel = mongoose.model(collectionName, CartSchema);

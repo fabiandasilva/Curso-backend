@@ -11,6 +11,7 @@ const path = require("path");
 const displayRoutes = require("express-routemap");
 const { PORT, HOST, DB_PORT, DB_NAME } = require("./config/constant");
 const productsModel = require("./dao/models/product.model");
+const cartsModel = require("./dao/models/carts.model");
 
 const app = express();
 app.use(express.json());
@@ -27,6 +28,19 @@ app.get("/products", async (req, res) => {
   res.render("products", { products: prods });
 });
 
+app.get("/carts/:cid", async (req, res) => {
+  const { cid } = req.params;
+  // console.log(cid, "id");
+  try {
+    const cart = await cartsModel.findOne({ _id: cid }).lean();
+    // console.log("resultado", cart);
+    res.render("carts", { carts: [cart] });
+  } catch (error) {
+    console.error("Error al buscar el carrito:", error);
+    res.status(500).send("Error interno del servidor");
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`Servidor corriendo en ==> ${HOST}:${PORT}`);
   displayRoutes(app);
@@ -34,7 +48,6 @@ app.listen(PORT, () => {
 app.use(`${API_BASE_PATH}/products`, productsRoutes);
 app.use(`${API_BASE_PATH}/carts`, cartsRoutes);
 app.use(`${API_BASE_PATH}/message`, messageRoutes);
-
 
 app.get("/", (req, res) => {
   res.send(`Bienvenido!`);
