@@ -93,13 +93,13 @@ class CartManager {
       } else {
         this.#cart.push(cart);
       }
-    
 
       await this.updateFile();
     } catch (error) {
       throw error;
     }
   }
+
 
   async deleteCart(id) {
     try {

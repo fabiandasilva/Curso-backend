@@ -22,8 +22,9 @@ app.use("/static", express.static(__dirname + "/../public"));
 app.engine("handlebars", handlebars.engine());
 app.set("views", path.join(__dirname, "./views/"));
 app.set("view engine", "handlebars");
-app.get("/chat", (req, res) => {
-  res.render("chat");
+app.get("/products", async (req, res) => {
+  const prods = await productsModel.find().lean();
+  res.render("products", { products: prods });
 });
 
 app.listen(PORT, () => {
@@ -34,13 +35,14 @@ app.use(`${API_BASE_PATH}/products`, productsRoutes);
 app.use(`${API_BASE_PATH}/carts`, cartsRoutes);
 app.use(`${API_BASE_PATH}/message`, messageRoutes);
 
+
 app.get("/", (req, res) => {
   res.send(`Bienvenido!`);
 });
 
 const connection = mongoose
-  .connect(`mongodb://${HOST}:${DB_PORT}/${DB_NAME}`)
-  // .connect(process.env.URI_ATLAS)
+  // .connect(`mongodb://${HOST}:${DB_PORT}/${DB_NAME}`)
+  .connect(process.env.URI_ATLAS)
   .then(() => {
     // let findProducts = productsModel
     //   .paginate({ category: "Electrónicos" }, { limit: 2, page: 1 })

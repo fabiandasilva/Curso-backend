@@ -43,8 +43,11 @@ exports.addProductInCart = async (req, res) => {
   const { cid, pid } = req.params;
 
   try {
+    const getProduct = await productsModel.findById(pid);
     await cartManager.addProductInCart(cid, pid);
-    res.status(201).json({ message: "Producto agregado al carrito" });
+    res
+      .status(201)
+      .json({ message: "Producto agregado al carrito", payload: getProduct });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

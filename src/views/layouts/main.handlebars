@@ -10,47 +10,13 @@
     {{{body}}}
 
 
-    {{!--
-    <script src="/socket.io/socket.io.js"></script> --}}
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            Swal.fire({
-                title: "Ingrese su nombre",
-                input: "text",
-                inputValidator: (value) => {
-                    return !value && "¡Necesitas escribir un nombre de usuario para continuar!";
-                },
-                allowOutsideClick: false
-            }).then((result) => {
-                const user = result.value;
-                console.log(user);
 
-                document.getElementById('formulario').addEventListener('submit', function (event) {
-                    event.preventDefault();
-
-                    const message = document.getElementById('message').value;
-
-                    fetch('/api/message', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({ user: user, message: message }),
-                    })
-                        .then(response => response.json())
-                        .then(data => console.log(data))
-                        .catch((error) => {
-                            console.error('Error:', error);
-                        });
-                });
-            });
-        });
-
-
-
-
+        function () {
+            const button = document.getElementById('btnAgregarAlCarrito');
+        };
 
     </script>
 </body>

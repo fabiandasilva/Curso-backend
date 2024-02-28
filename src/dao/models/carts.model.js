@@ -7,18 +7,37 @@ const CartSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     default: new mongoose.Types.ObjectId(),
   },
-  products: [
-    {
-      productId: {
-        type: mongoose.Schema.Types.ObjectId,
-        required: true,
+  products: {
+    type: [
+      {
+        productId: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "products",
+        },
+        quantity: {
+          type: Number,
+          required: true,
+        },
       },
-      quantity: {
-        type: Number,
-        required: true
-      },
-    },
-  ],
+    ],
+    default: [],
+  },
+  // products: [
+  //   {
+  //     productId: {
+  //       type: mongoose.Schema.Types.ObjectId,
+  //       required: true,
+  //     },
+  //     quantity: {
+  //       type: Number,
+  //       required: true
+  //     },
+  //   },
+  // ],
+});
+
+CartSchema.pre("find", function () {
+  this.populate("products.product");
 });
 
 const cartsModel = mongoose.model(collectionName, CartSchema);
