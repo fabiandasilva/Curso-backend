@@ -1,0 +1,16 @@
+<div class="max-w-md mx-auto">
+  <h1 class="text-3xl font-bold mb-4">Perfil de usuario</h1>
+
+  <div class="mb-4">
+    <p class="mb-2"><span class="font-semibold">Nombre:</span> {{this.firstName}}</p>
+    <p class="mb-2"><span class="font-semibold">Apellido:</span> {{this.lastName}}</p>
+    <p class="mb-2"><span class="font-semibold">Email:</span> {{this.email}}</p>
+    <p class="mb-2"><span class="font-semibold">Edad:</span> {{this.age}}</p>
+  </div>
+
+  <div>
+    <form action="/api/session/logout" method="get">
+      <button type="submit" class="bg-red-500 text-white py-2 px-4 rounded-md hover:bg-red-600 transition duration-300">Cerrar sesión</button>
+    </form>
+  </div>
+</div>
