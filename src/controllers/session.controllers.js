@@ -1,4 +1,5 @@
 const usersModel = require("../dao/models/users.model");
+const { createHash, isValidPassword } = require("../utils/encrypt");
 
 exports.greeting = async (req, res) => {
   const { name } = req.query;
@@ -24,20 +25,23 @@ exports.greeting = async (req, res) => {
 exports.register = async (req, res) => {
   try {
     const { first_name, last_name, email, age, password } = req.body;
+    console.log("Contra del body ", password);
 
     if (!first_name || !last_name || !email || !age || !password) {
       return res.status(400).json({
         message: "Por favor, proporcione todos los campos necesarios.",
       });
     }
+    const pswHased = await createHash(password);
 
     const addUser = {
       first_name,
       last_name,
       email,
       age,
-      password,
+      password: pswHased,
     };
+    console.log("Contra encriptada ", pswHased);
 
     const newUser = await usersModel.create(addUser);
 
@@ -57,6 +61,7 @@ exports.register = async (req, res) => {
 exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
+    console.log(req.body);
     const session = req.session;
     console.log(session);
     const findUser = await usersModel.findOne({ email }).lean();
@@ -65,7 +70,12 @@ exports.login = async (req, res) => {
       return res.status(401).json({ message: "Usuario no existe" });
     }
 
-    if (findUser.password !== password) {
+    const isValidComparePsw = await isValidPassword(
+      password,
+      findUser.password
+    );
+
+    if (!isValidComparePsw) {
       return res.status(401).json({ message: "Credenciales incorrectas" });
     }
 
@@ -84,6 +94,33 @@ exports.login = async (req, res) => {
   } catch (error) {
     console.error("Error al iniciar sesion:", error);
     return res.status(500).json({ message: "Error al iniciar sesion", error });
+  }
+};
+exports.recoverPsw = async (req, res) => {
+  try {
+    const { email, new_password } = req.body;
+    console.log(req.body);
+
+    const newPswHashed = await createHash(new_password);
+    const user = await usersModel.findOne({ email });
+
+    if (!user) {
+      return res.status(401).json({ message: "Credenciales invalidas" });
+    }
+
+    const updateUser = await usersModel.findByIdAndUpdate(user._id, {
+      password: newPswHashed,
+    });
+
+    if (!updateUser) {
+      return res.json({ message: "Problemas al actualizar la contraseña" });
+    }
+    return res.redirect("/login");
+  } catch (error) {
+    console.error("Error crear la nueva contraseña:", error);
+    return res
+      .status(500)
+      .json({ message: "Error crear la nueva contraseña", error });
   }
 };
 
@@ -115,3 +152,4 @@ exports.logOut = async (req, res) => {
       .json({ message: "Error al cerrar sesion", body: error });
   }
 };
+ 

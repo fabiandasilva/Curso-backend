@@ -1,5 +1,6 @@
 require("dotenv").config();
 
+const passport = require("passport");
 const express = require("express");
 const mongoose = require("mongoose");
 const productsRoutes = require("./routes/products.routes");
@@ -13,6 +14,7 @@ const handlebars = require("express-handlebars");
 const errorHandler = require("../src/middleware/error.middleware");
 const path = require("path");
 const displayRoutes = require("express-routemap");
+const initializePassport = require("./config/passport.config");
 const {
   PORT,
   HOST,
@@ -34,7 +36,7 @@ app.listen(PORT, () => {
 });
 
 // Middlewares
-app.use(express.json());
+
 app.use(express.urlencoded({ extended: true }));
 app.use("/static", express.static(__dirname + "/../public"));
 app.use(errorHandler);
@@ -50,9 +52,12 @@ app.use(
     }),
     secret: process.env.SECRET_SESSION,
     saveUninitialized: true,
-    resave : true,
+    resave: true,
   })
 );
+initializePassport();
+app.use(passport.initialize());
+app.use(passport.session());
 
 // Configuración de Handlebars
 app.engine("handlebars", handlebars.engine());

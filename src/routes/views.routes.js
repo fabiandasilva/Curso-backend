@@ -2,11 +2,35 @@ const express = require("express");
 const cartsModel = require("../dao/models/carts.model");
 const productsModel = require("../dao/models/product.model");
 const authMiddleware = require("../middleware/auth.middleware");
+const passport = require("passport");
 const router = express.Router();
 
+// GET /
 router.get("/register", (req, res) => {
   try {
     res.render("register");
+  } catch (error) {
+    console.log("Error al renderizar el formulario de registro:", error);
+  }
+});
+
+// POST /register
+router.post(
+  "/register",
+  passport.authenticate("register", {
+    successRedirect: "/",
+    failureRedirect: "/failregister",
+    failureFlash: true,
+  })
+);
+
+router.get("/failregister", async (req, res) => {
+  res.send({ error: "register strategy failed" });
+});
+
+router.get("/failregister", (req, res) => {
+  try {
+    res.send({ error: "register estrategia fallida" });
   } catch (error) {
     console.log("Error al renderizar el formulario de registro:", error);
   }
@@ -24,6 +48,14 @@ router.get("/profile", authMiddleware, async (req, res) => {
 router.get("/login", (req, res) => {
   try {
     res.render("login");
+  } catch (error) {
+    console.log("Error al renderizar el login:", error);
+  }
+});
+
+router.get("/recover", (req, res) => {
+  try {
+    res.render("recover");
   } catch (error) {
     console.log("Error al renderizar el login:", error);
   }
