@@ -1,5 +1,5 @@
 require("dotenv").config();
-
+const styleText = require('node:util')
 const passport = require("passport");
 const express = require("express");
 const mongoose = require("mongoose");
@@ -81,3 +81,4 @@ const connection = mongoose
   .catch((err) => {
     console.error("Error conectando a MongoDB:", err);
   });
+
