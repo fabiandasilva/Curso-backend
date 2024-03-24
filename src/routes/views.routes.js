@@ -39,7 +39,7 @@ router.get("/recover", (req, res) => {
 
 router.get("/products", async (req, res) => {
   const prods = await productsModel.find().lean();
-  const user = req.user;
+  const user = req.session.user;
   console.log("🚀 ~ file: views.routes.js:64 ~ router.get ~ user", user);
   res.render("products", { products: prods, user: user });
 });
