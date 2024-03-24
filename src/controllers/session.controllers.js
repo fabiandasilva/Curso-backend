@@ -1,5 +1,7 @@
+const { find } = require("../dao/models/product.model");
 const usersModel = require("../dao/models/users.model");
 const { createHash, isValidPassword } = require("../utils/encrypt");
+const { generateJWT } = require("../utils/jwt");
 
 exports.greeting = async (req, res) => {
   const { name } = req.query;
@@ -62,9 +64,12 @@ exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
     console.log(req.body);
+
     const session = req.session;
     console.log(session);
+
     const findUser = await usersModel.findOne({ email }).lean();
+    console.log("Usuario encontrado: ", findUser)
 
     if (!findUser) {
       return res.status(401).json({ message: "Usuario no existe" });
@@ -80,9 +85,10 @@ exports.login = async (req, res) => {
     }
 
     let role = "usuario";
-    if (email === "adminCoder@coder.com" && password === "adminCod3r123") {
+    if (email === "adminCoder@coder.com" && password === "adminCoder123") {
       role = "admin";
     }
+    const token = await generateJWT({ email, first_name: findUser.first_name, role, age: findUser.age })
 
     req.session.user = {
       ...findUser,
@@ -90,12 +96,16 @@ exports.login = async (req, res) => {
       role: role,
     };
 
-    return res.redirect("/products");
+    console.log("Token: ", token);
+    // return res.redirect("/products");
+    return res.cookie("token", token, { httpOnly: true }).redirect("/products");
   } catch (error) {
     console.error("Error al iniciar sesion:", error);
     return res.status(500).json({ message: "Error al iniciar sesion", error });
   }
 };
+
+
 exports.recoverPsw = async (req, res) => {
   try {
     const { email, new_password } = req.body;
@@ -152,4 +162,3 @@ exports.logOut = async (req, res) => {
       .json({ message: "Error al cerrar sesion", body: error });
   }
 };
- 

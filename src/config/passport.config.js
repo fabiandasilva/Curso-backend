@@ -1,12 +1,18 @@
 const passport = require("passport");
 const GithubStrategy = require("passport-github2");
-const local = require("passport-local");
 const usersModel = require("../dao/models/users.model");
+const jwt = require("passport-jwt");
+const { SECRET_JWT } = require("../utils/jwt");
+const local = require("passport-local");
 const { isValidPassword, createHash } = require("../utils/encrypt");
 
-const localStrategy = local.Strategy;
+
 
 const initializePassport = () => {
+  const JWTStrategy = jwt.Strategy;
+  const ExtractJWT = jwt.ExtractJwt;
+  const localStrategy = local.Strategy;
+
   passport.use(
     "register",
     new localStrategy(
@@ -16,17 +22,15 @@ const initializePassport = () => {
       },
       async (req, username, password, done) => {
         console.log(
-          "🚀 ~ file: passport.config.js:17 ~ username: REGISTER STRATEGY",
+          "REGISTER STRATEGY",
           username
         );
 
-        const { first_name, last_name, email, age } = req.body;
+        const { first_name, last_name, email, age, role } = req.body;
 
         try {
           let user = await usersModel.findOne({ email });
-          console.log("🚀 ~ file: passport.config.js:19 ~ user:", user);
           if (user) {
-            // el usuario existe
             return done(null, false);
           }
           const pswHashed = await createHash(password);
@@ -37,19 +41,20 @@ const initializePassport = () => {
             email,
             age,
             password: pswHashed,
+            role
           };
 
-          const newUser = await usersModel.create(addUser); // promesa
+          const newUser = await usersModel.create(addUser);
 
           if (!newUser) {
             return res
               .status(500)
-              .json({ message: `we have some issues register this user` });
+              .json({ message: "Error al registrar usuario" });
           }
 
           return done(null, newUser);
         } catch (error) {
-          return done(`error getting user ${error}`);
+          return done(error);
         }
       }
     )
@@ -76,6 +81,57 @@ const initializePassport = () => {
           return done(null, user);
         } catch (error) {
           console.log("Error en la estrategia de inicio de sesión:", error);
+          return done(error);
+        }
+      }
+    )
+  );
+
+  passport.use(
+    "jwt",
+    new JWTStrategy(
+      {
+        jwtFromRequest: ExtractJWT.fromAuthHeaderAsBearerToken(),
+        secretOrKey: SECRET_JWT,
+      },
+      async (jwtPayload, done) => {
+        console.log(
+          "🚀 ~ file: passport.config.js:19 ~ jwtPayload:",
+          jwtPayload
+        );
+        try {
+          return done(null, jwtPayload);
+        } catch (error) {
+          return done(error);
+        }
+      }
+    )
+  );
+
+
+  passport.use(
+    "current",
+    new JWTStrategy(
+      {
+        jwtFromRequest: ExtractJWT.fromExtractors([
+          ExtractJWT.fromAuthHeaderAsBearerToken(),
+          (req) => {
+            if (req && req.cookies) {
+              return req.cookies["token"];
+            }
+            return null;
+          },
+        ]),
+        secretOrKey: SECRET_JWT,
+      },
+      async (jwtPayload, done) => {
+        try {
+          const user = await usersModel.findById(jwtPayload.user._id);
+          if (!user) {
+            return done(null, false, { message: "Usuario no encontrado" });
+          }
+          return done(null, user);
+        } catch (error) {
           return done(error);
         }
       }

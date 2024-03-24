@@ -3,30 +3,30 @@ const router = express.Router();
 const sessionController = require("../controllers/session.controllers");
 const authMiddleware = require("../middleware/auth.middleware");
 const passport = require("passport");
+const authenticateUserMiddleware = require("../middleware/authenticateUser.middleware");
 
 router.get("/", sessionController.greeting);
-
-// router.post("/login", [
-//   passport.authenticate("login"),
-//   sessionController.login,
-// ]);
 router.get("/logout", sessionController.logOut);
 router.get("/private", authMiddleware, sessionController.private);
-router.post("/register", [
-  passport.authenticate("register", { failureRedirect: "/failregister" }),
-  sessionController.register,
-]);
-// router.post("/login", sessionController.login);
+
+router.post("/register", sessionController.register);
+
+
 router.post("/login", [
   passport.authenticate("login", { failureRedirect: "/faillogin" }),
   sessionController.login,
 ]);
+
 router.post("/recover-psw", sessionController.recoverPsw);
+
+router.get("/current", authenticateUserMiddleware, (req, res) => {
+  res.json({ user: req.user });
+});
 
 router.get(
   "/github",
   passport.authenticate("github", { scope: ["user:email"] }),
-  async (req, res) => {}
+  async (req, res) => { }
 );
 
 router.get(

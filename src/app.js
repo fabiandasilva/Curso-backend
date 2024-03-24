@@ -37,6 +37,7 @@ app.listen(PORT, () => {
 
 // Middlewares
 
+app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use("/static", express.static(__dirname + "/../public"));
 app.use(errorHandler);
@@ -48,7 +49,7 @@ app.use(
     store: MongoStore.create({
       mongoUrl: process.env.URI_ATLAS,
       mongoOptions: { useNewUrlParser: true, useUnifiedTopology: true },
-      ttl: 15,
+      ttl: 1800000,
     }),
     secret: process.env.SECRET_SESSION,
     saveUninitialized: true,
