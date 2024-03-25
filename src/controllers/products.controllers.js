@@ -1,10 +1,11 @@
 const ProductManager = require("../dao/productManager");
 const uploader = require("../utils/multer");
 const productsModel = require("../dao/models/product.model");
+const productService = require("../service/products.services");
 const manager = new ProductManager();
 const uploaderFile = uploader.array("thumbnail");
 
-exports.getProducts = async (req, res) => {
+exports.getProductsCtrl = async (req, res) => {
   const {
     page = 1,
     limit = 10,
@@ -22,22 +23,9 @@ exports.getProducts = async (req, res) => {
 
   const sortOption = sort === "desc" ? { price: -1 } : { price: 1 };
 
-  const {
-    docs: products,
-    totalDocs,
-    limit: limitPag,
-    totalPages,
-    hasPrevPage,
-    hasNextPage,
-    nextPage,
-    prevPage,
-  } = await productsModel.paginate(
-    query,
-    { page, limit, sort: sortOption },
-    { sort: { price: sort } },
-    { price: price },
-    { status: true }
-  );
+  const options = { page, limit, sort: sortOption };
+
+  const productList = await productService.getAllProducts(query, options);
 
   if (isNaN(limit)) {
     return res.status(400).json({
@@ -51,23 +39,23 @@ exports.getProducts = async (req, res) => {
 
   return res.status(200).json({
     status: "success",
-    mesaage: "Productos obtenidos exitosamente",
-    payload: products,
-    totalPages,
-    prevPage,
-    nextPage,
-    page: page,
-    hasNextPage,
-    hasPrevPage,
-    length: totalDocs,
-    limit: limitPag,
+    message: "Productos obtenidos exitosamente",
+    payload: productList.docs,
+    totalPages: productList.totalPages,
+    prevPage: productList.prevPage,
+    nextPage: productList.nextPage,
+    page: productList.page,
+    hasNextPage: productList.hasNextPage,
+    hasPrevPage: productList.hasPrevPage,
+    length: productList.totalDocs,
+    limit: productList.limit,
   });
 };
 
-exports.getProductById = async (req, res) => {
+exports.getProductByIdCtrl = async (req, res) => {
   const id = req.params.pid;
   try {
-    const product = await productsModel.findById({ _id: id });
+    const product = await productService.getProductById(id);
     return res.status(200).json({
       mesaage: "Producto obtenido exitosamente",
       product: product,
@@ -78,7 +66,7 @@ exports.getProductById = async (req, res) => {
   }
 };
 
-exports.addProduct = async (req, res) => {
+exports.addProductCtrl = async (req, res) => {
   const { title, description, thumbnail, price, category, code, stock } =
     req.body;
   const status = true;
@@ -99,28 +87,32 @@ exports.addProduct = async (req, res) => {
   }
 
   try {
-    await manager.addProduct(
+    const newProduct = await productService.createProduct({
       title,
       description,
-      price,
+      price: priceNumber,
       thumbnail,
       category,
       code,
-      stock,
-      status
-    );
+      stock: stockNumber,
+      status,
+    });
+
+    await manager.addProduct(newProduct);
+
     return res.status(201).json({
       message: "Producto agregado exitosamente",
+      product: newProduct,
     });
   } catch (error) {
-    console.error("Error en la ruta POST:", error);
+    console.error("Ocurrio un erro: ", error);
     return res.status(500).json({
       error: error.message,
     });
   }
 };
 
-exports.updateProduct = async (req, res) => {
+exports.updateProductCtrl = async (req, res) => {
   const id = req.params.pid;
   const { title, description, price, thumbnail, code, category, stock } =
     req.body;
@@ -135,8 +127,10 @@ exports.updateProduct = async (req, res) => {
   };
 
   try {
-    await productsModel.updateOne({ _id: id }, newProductToReplace);
+    await productService.updateProduct({ _id: id }, newProductToReplace);
+
     await manager.updateProduct(id, newProductToReplace);
+
     return res.status(200).json({
       message: "Producto actualizado exitosamente",
       Actualizado: newProductToReplace,
@@ -149,12 +143,14 @@ exports.updateProduct = async (req, res) => {
   }
 };
 
-exports.deleteProduct = async (req, res) => {
+exports.deleteProductCtrl = async (req, res) => {
   const id = req.params.pid;
 
   try {
-    await productsModel.deleteOne({ _id: id });
+    await productService.deleteProduct({ _id: id });
+
     await manager.deleteProduct(id);
+
     return res.status(200).json({
       message: "Producto eliminado exitosamente",
     });

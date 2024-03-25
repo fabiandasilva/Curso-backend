@@ -60,6 +60,7 @@ class CartManager {
       return error;
     }
   }
+
   async addProductInCart(cartId, productId) {
     try {
       const product = await productsModel.findById(productId);
@@ -99,7 +100,6 @@ class CartManager {
       throw error;
     }
   }
-
 
   async deleteCart(id) {
     try {

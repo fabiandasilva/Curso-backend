@@ -1,5 +1,3 @@
-const productsModel = require("./models/product.model");
-
 const fs = require("fs").promises;
 
 class ProductManager {
@@ -37,33 +35,14 @@ class ProductManager {
     console.log("getProductById: ", result[0]);
   }
 
-  async addProduct(
-    title,
-    description,
-    price,
-    thumbnail,
-    category,
-    code,
-    stock,
-    status
-  ) {
+  async addProduct(newProduct) {
     try {
-      const newProduct = new productsModel({
-        title,
-        description,
-        price: Number(price),
-        thumbnail,
-        category,
-        code,
-        stock: Number(stock),
-        status,
-      });
+      newProduct.price = Number(newProduct.price);
+      newProduct.stock = Number(newProduct.stock);
 
       this.#products.push(newProduct);
 
       await this.updateFile();
-
-      await newProduct.save();
 
       console.log("Producto añadido exitosamente:", newProduct);
     } catch (error) {
