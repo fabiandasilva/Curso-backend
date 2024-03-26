@@ -1,6 +1,8 @@
 const jwt = require("jsonwebtoken");
+const { SECRET_JWT } = require("../config/constant");
 
-const SECRET_JWT = "dasdsa51d65as1d651sa";
+// const SECRET_JWT = process.env.SECRET_JWT;
+
 
 const generateJWT = (user) => {
     return new Promise((resolve, reject) => {

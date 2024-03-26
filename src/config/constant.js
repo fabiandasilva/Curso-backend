@@ -5,6 +5,7 @@ const DB_NAME = "ecommerce";
 const API_BASE_PATH = "/api";
 const COOKIES_SECRET = "sercreto";
 const SECRET_SESSION = "session-secreta";
+const SECRET_JWT = "dasdsa51d65as1d651sa"
 
 module.exports = {
   HOST,
@@ -14,4 +15,5 @@ module.exports = {
   API_BASE_PATH,
   COOKIES_SECRET,
   SECRET_SESSION,
+  SECRET_JWT
 };
