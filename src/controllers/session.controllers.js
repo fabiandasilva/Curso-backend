@@ -2,6 +2,7 @@ const { find } = require("../dao/models/product.model");
 const usersModel = require("../dao/models/users.model");
 const { createHash, isValidPassword } = require("../utils/encrypt");
 const { generateJWT } = require("../utils/jwt");
+const userService = require("../service/user.services");
 
 exports.greeting = async (req, res) => {
   const { name } = req.query;
@@ -24,7 +25,7 @@ exports.greeting = async (req, res) => {
   );
 };
 
-exports.register = async (req, res) => {
+exports.registerCtrl = async (req, res) => {
   try {
     const { first_name, last_name, email, age, password } = req.body;
     console.log("Contra del body ", password);
@@ -45,7 +46,7 @@ exports.register = async (req, res) => {
     };
     console.log("Contra encriptada ", pswHased);
 
-    const newUser = await usersModel.create(addUser);
+    const newUser = await userService.createUser(addUser);
 
     if (!newUser) {
       return res.status(500).json({ message: "Error al registrar usuario" });
@@ -60,7 +61,7 @@ exports.register = async (req, res) => {
   }
 };
 
-exports.login = async (req, res) => {
+exports.loginCtrl = async (req, res) => {
   try {
     const { email, password } = req.body;
     console.log(req.body);
@@ -68,8 +69,8 @@ exports.login = async (req, res) => {
     const session = req.session;
     console.log(session);
 
-    const findUser = await usersModel.findOne({ email }).lean();
-    console.log("Usuario encontrado: ", findUser)
+    const findUser = await userService.findUser(email);
+    console.log("Usuario encontrado: ", findUser);
 
     if (!findUser) {
       return res.status(401).json({ message: "Usuario no existe" });
@@ -88,7 +89,12 @@ exports.login = async (req, res) => {
     if (email === "adminCoder@coder.com" && password === "adminCoder123") {
       role = "admin";
     }
-    const token = await generateJWT({ email, first_name: findUser.first_name, role, age: findUser.age })
+    const token = await generateJWT({
+      email,
+      first_name: findUser.first_name,
+      role,
+      age: findUser.age,
+    });
 
     req.session.user = {
       ...findUser,
@@ -105,14 +111,14 @@ exports.login = async (req, res) => {
   }
 };
 
-
-exports.recoverPsw = async (req, res) => {
+exports.recoverPswCtrl = async (req, res) => {
   try {
     const { email, new_password } = req.body;
     console.log(req.body);
 
     const newPswHashed = await createHash(new_password);
-    const user = await usersModel.findOne({ email });
+    const user = await userService.findUser(email);
+    
 
     if (!user) {
       return res.status(401).json({ message: "Credenciales invalidas" });
