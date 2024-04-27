@@ -9,15 +9,15 @@ router.get("/", sessionController.greeting);
 router.get("/logout", sessionController.logOut);
 router.get("/private", authMiddleware, sessionController.private);
 
-router.post("/register", sessionController.register);
+router.post("/register", sessionController.registerCtrl);
 
 
 router.post("/login", [
   passport.authenticate("login", { failureRedirect: "/faillogin" }),
-  sessionController.login,
+  sessionController.loginCtrl,
 ]);
 
-router.post("/recover-psw", sessionController.recoverPsw);
+router.post("/recover-psw", sessionController.recoverPswCtrl);
 
 router.get("/current", authenticateUserMiddleware, (req, res) => {
   res.json({ user: req.user });

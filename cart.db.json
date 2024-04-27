@@ -4,7 +4,7 @@
 		"products": [
 			{
 				"productId": "65d16d49037e743151295865",
-				"quantity": 9,
+				"quantity": 8,
 				"_id": "65d25fe5f7ae2a807dffeb58"
 			}
 		],
@@ -48,15 +48,7 @@
 		"__v": 4
 	},
 	{
-		"_id": "65de4e79024cbc826002c318",
-		"products": []
-	},
-	{
-		"_id": "65de77a724eed51353658442",
-		"products": []
-	},
-	{
-		"_id": "65de82489570842be2c1508f",
+		"_id": "6601bf184f8a3010b3080f54",
 		"products": []
 	}
 ]
