@@ -9,6 +9,7 @@ const messageRoutes = require("./routes/message.routes");
 const cookieRoutes = require("./routes/cookies.routes");
 const handlebarsRoutes = require("./routes/views.routes");
 const sessionRoutes = require("./routes/session.routes");
+const smsRoutes = require("./routes/sms.routes");
 const session = require("express-session");
 const handlebars = require("express-handlebars");
 const errorHandler = require("../src/middleware/error.middleware");
@@ -72,6 +73,7 @@ app.use(`${API_BASE_PATH}/carts`, cartsRoutes);
 app.use(`${API_BASE_PATH}/message`, messageRoutes);
 app.use(`${API_BASE_PATH}/`, cookieRoutes);
 app.use(`${API_BASE_PATH}/session`, sessionRoutes);
+app.use(`${API_BASE_PATH}/sms`, smsRoutes);
 
 // Conexión a MongoDB
 const connection = mongoose

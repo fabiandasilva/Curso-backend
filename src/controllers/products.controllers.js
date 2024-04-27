@@ -1,7 +1,7 @@
-const ProductManager = require("../dao/productManager");
+
 const uploader = require("../utils/multer");
 const productsModel = require("../dao/models/product.model");
-const manager = new ProductManager();
+
 const uploaderFile = uploader.array("thumbnail");
 
 exports.getProducts = async (req, res) => {
