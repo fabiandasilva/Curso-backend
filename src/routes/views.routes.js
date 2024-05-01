@@ -1,58 +1,158 @@
-const express = require("express");
-const cartsModel = require("../dao/models/carts.model");
-const productsModel = require("../dao/models/product.model");
-const authMiddleware = require("../middleware/auth.middleware");
-const router = express.Router();
+import { Router } from "express";
+import DBProductManager from "../dao/mongo/product.service.js";
+const products = new DBProductManager()
+import DBMessagesManager from "../dao/mongo/messages.service.js";
+const messages = new DBMessagesManager()
+import DBCartManager from "../dao/mongo/cart.service.js";
+const cart = new DBCartManager()
+import { authMdwFront, loggedRedirect } from "../middleware/auth.middleware.js";
 
-router.get("/profile", authMiddleware, async (req, res) => {
-  const user = req.session.user;
-  try {
-    res.render("profile", { user });
-  } catch (error) {
-    console.log("Error al renderizar el profile:", error);
-  }
-});
 
-router.get("/login", (req, res) => {
-  try {
-    res.render("login");
-  } catch (error) {
-    console.log("Error al renderizar el login:", error);
-  }
-});
+const router = Router()
 
-router.get("/register", (req, res) => {
-  try {
-    res.render("register");
-  } catch (error) {
-    console.log("Error al renderizar el login:", error);
-  }
-});
+router.get('/', authMdwFront, (req, res) => {
+    const { page = 1, limit = 5, sort } = req.query;
 
-router.get("/recover", (req, res) => {
-  try {
-    res.render("recover");
-  } catch (error) {
-    console.log("Error al renderizar el login:", error);
-  }
-});
+    let query = {}
 
-router.get("/products", async (req, res) => {
-  const prods = await productsModel.find().lean();
-  const user = req.session.user;
-  console.log("🚀 ~ file: views.routes.js:64 ~ router.get ~ user", user);
-  res.render("products", { products: prods, user: user });
-});
+    if (req.query.status) {
+        query = {
+            status: req.query.status
+        }
+    }
 
-router.get("/carts/:cid", async (req, res) => {
-  const { cid } = req.params;
-  try {
-    const cart = await cartsModel.findOne({ _id: cid }).lean();
-    // console.log("resultado", cart);
-    res.render("carts", { carts: [cart] });
-  } catch (error) {
-    console.error("Error al buscar el carrito:", error);
-    res.status(500).send("Error interno del servidor");
-  }
-});
-module.exports = router;
+    if (req.query.category) {
+        query = {
+            category: req.query.category.charAt(0).toUpperCase()
+                + req.query.category.slice(1)
+        }
+    }
+
+    const url = new URL(`${req.protocol}://${req.get('host')}${req.originalUrl}`);
+
+    products.getProducts(page, limit, sort, query, url).then(result => {
+        res.render("index", {
+            title: "Desafio 1 Modulo 2",
+            products: result.payload,
+            nextPage: result.nextLink,
+            prevPage: result.prevLink,
+            user: req.user,
+            style: "styles.css"
+        })
+    }).catch(err => {
+        console.log(err);
+        res.status(400).json(err.message);
+    });
+})
+
+router.get('/realtimeproducts', authMdwFront, (req, res) => {
+    const { page = 1, limit = 5, sort } = req.query;
+
+    let query = {}
+
+    if (req.query.status) {
+        query = {
+            status: req.query.status
+        }
+    }
+
+    if (req.query.category) {
+        query = {
+            category: req.query.category.charAt(0).toUpperCase()
+                + req.query.category.slice(1)
+        }
+    }
+
+    const url = new URL(`${req.protocol}://${req.get('host')}${req.originalUrl}`);
+
+    products.getProducts(page, limit, sort, query, url).then(result => {
+        res.render("realtimeproducts", {
+            title: "Desafio 1 Modulo 2 - Productos en tiempo real",
+            products: result.payload,
+            nextPage: result.nextLink,
+            prevPage: result.prevLink,
+            user: req.user
+        })
+    }).catch(err => {
+        console.log(err);
+        res.status(400).json(err.message);
+    });
+})
+
+
+router.get('/products', authMdwFront, (req, res) => {
+    const { page = 1, limit = 5, sort } = req.query;
+
+    let query = {}
+
+    if (req.query.status) {
+        query = {
+            status: req.query.status
+        }
+    }
+
+    if (req.query.category) {
+        query = {
+            category: req.query.category.charAt(0).toUpperCase()
+                + req.query.category.slice(1)
+        }
+    }
+
+    const url = new URL(`${req.protocol}://${req.get('host')}${req.originalUrl}`);
+
+    products.getProducts(page, limit, sort, query, url).then(result => {
+        res.render("products", {
+            title: "Desafio 1 Modulo 2",
+            products: result.payload,
+            nextPage: result.nextLink,
+            prevPage: result.prevLink,
+            user: req.user,
+            style: "styles.css"
+        })
+    }).catch(err => {
+        console.log(err);
+        res.status(400).json(err.message);
+    });
+})
+
+router.get('/carts/:cid', authMdwFront, (req, res) => {
+    const idCart = req.params.cid
+
+    cart.getCartProducts(idCart).then(result => {
+        res.render("cart", {
+            title: "Desafio 1 Modulo 2 - Carrito de Compras",
+            product: result
+        })
+    }).catch(err => {
+        console.log(err);
+        res.status(400).json(err.message);
+    });
+})
+
+router.get('/cart', authMdwFront, (req, res) => {
+    const idCart = req.user.cart
+
+    cart.getCartProducts(idCart).then(result => {
+        res.render("cart", {
+            title: "Desafio 1 Modulo 2 - Carrito de Compras",
+            product: result
+        })
+    }).catch(err => {
+        console.log(err);
+        res.status(400).json(err.message);
+    });
+})
+
+router.get('/login', loggedRedirect, (req, res) => {
+    res.render("login", {
+        title: "Desafio 1 Modulo 2 - Login"
+    })
+})
+
+router.get('/register', loggedRedirect, (req, res) => {
+    res.render("register", {
+        title: "Desafio 1 Modulo 2 - Register"
+    })
+})
+
+export default router

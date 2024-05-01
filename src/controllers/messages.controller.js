@@ -1,18 +1,32 @@
-const messagesModel = require("../dao/models/messages.model");
+import { messagesService } from "../repository/index.js";
 
-exports.sendMessage = async (req, res) => {
-  const { user, message } = req.body;
+const addMessageCtrl = async(req, res) => {
+    const newMessage = req.body
+    const io = req.app.get('io');
 
-  try {
-    const newMessage = new messagesModel({ user, message });
-    await newMessage.save();
-    return res.status(201).json({
-      message: "Mensaje enviado exitosamente",
+    messagesService.addMessage(newMessage.message, 
+        newMessage.user
+        )
+        .then(result => {
+            console.log(result)
+            io.emit('message sent', result);
+            return res.status(200).json(`Se subio correctamente el mensaje`);
+        }).catch(err => {
+            res.status(400).json(err.message)
+        });
+}
+
+
+const getAllMessagesCtrl = async(req, res) => {
+    messagesService.getAllMessages().then(result => {
+        res.status(200).json(result);
+    }).catch(err => {
+        console.log(err);
+        res.status(400).json(err.message);
     });
-  } catch (error) {
-    console.error("Error en la ruta POST:", error);
-    return res.status(500).json({
-      error: error.message,
-    });
-  }
-};
+}
+
+export {
+    addMessageCtrl,
+    getAllMessagesCtrl
+}

@@ -1,89 +1,61 @@
-require("dotenv").config();
-const styleText = require('node:util')
-const passport = require("passport");
-const express = require("express");
-const mongoose = require("mongoose");
-const productsRoutes = require("./routes/products.routes");
-const cartsRoutes = require("./routes/cart.routes");
-const messageRoutes = require("./routes/message.routes");
-const cookieRoutes = require("./routes/cookies.routes");
-const handlebarsRoutes = require("./routes/views.routes");
-const sessionRoutes = require("./routes/session.routes");
-const smsRoutes = require("./routes/sms.routes");
-const mockingproducts = require("./routes/mockingProducts.routes");
-const session = require("express-session");
-const handlebars = require("express-handlebars");
-const errorHandler = require("../src/middleware/error.middleware");
-const path = require("path");
-const displayRoutes = require("express-routemap");
-const initializePassport = require("./config/passport.config");
-const {
-  PORT,
-  HOST,
-  DB_PORT,
-  DB_NAME,
-  COOKIES_SECRET,
-  SECRET_SESSION,
-  API_BASE_PATH,
-} = require("./config/constant");
-const cookieParser = require("cookie-parser");
-const MongoStore = require("connect-mongo");
+import express from "express";
+import { engine } from "express-handlebars";
+import { fileURLToPath } from 'url';
+import path from "path";
+import cookieParser from "cookie-parser";
+import passport from "passport";
+import { Server } from 'socket.io';
+import expressRoutemap from "express-routemap";
 
+import * as config from "./config/config.js";
+import initializePassport from "./config/passport.config.js";
+import productsRoutes from "./routes/products.routes.js";
+import cartsRoutes from "./routes/carts.routes.js";
+import viewRoutes from "./routes/views.routes.js";
+import messagesRoutes from "./routes/messages.routes.js";
+import sessionRoutes from "./routes/sessions.routes.js";
+import mockingProducts from "./routes/faker.products.routes.js"
+import smsRoutes from "./routes/sms.routes.js";
+
+// Constants
+const { PORT, HOST, API_PREFIX, COOKIE_SECRET } = config;
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Initialize Express app
 const app = express();
 
-// Inicio del servidor
-app.listen(PORT, () => {
-  console.log(`Servidor corriendo en ==> ${HOST}:${PORT}`);
-  displayRoutes(app);
-});
-
 // Middlewares
-
-app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use("/static", express.static(__dirname + "/../public"));
-app.use(errorHandler);
-app.use(cookieParser(process.env.COOKIES_SECRET));
-
-// Configuración de la sesión
-app.use(
-  session({
-    store: MongoStore.create({
-      mongoUrl: process.env.URI_ATLAS,
-      mongoOptions: { useNewUrlParser: true, useUnifiedTopology: true },
-      ttl: 1800000,
-    }),
-    secret: process.env.SECRET_SESSION,
-    saveUninitialized: true,
-    resave: true,
-  })
-);
-initializePassport();
+app.use(express.json()); 
+app.use(express.static(path.join(__dirname, 'public')));
+app.use(cookieParser(COOKIE_SECRET));
 app.use(passport.initialize());
-app.use(passport.session());
 
-// Configuración de Handlebars
-app.engine("handlebars", handlebars.engine());
-app.set("views", path.join(__dirname, "./views/"));
+// Set view engine
+app.engine("handlebars", engine());
+app.set("views", path.join(__dirname, "views"));
 app.set("view engine", "handlebars");
 
-// Rutas
-app.use("/", handlebarsRoutes);
-app.use(`${API_BASE_PATH}/products`, productsRoutes);
-app.use(`${API_BASE_PATH}/carts`, cartsRoutes);
-app.use(`${API_BASE_PATH}/message`, messageRoutes);
-app.use(`${API_BASE_PATH}/`, cookieRoutes);
-app.use(`${API_BASE_PATH}/session`, sessionRoutes);
-app.use(`${API_BASE_PATH}/sms`, smsRoutes);
-app.use(`${API_BASE_PATH}/mockingproducts`, mockingproducts);
+// Routes
+app.use(`/${API_PREFIX}/products`, productsRoutes);
+app.use(`/${API_PREFIX}/carts`, cartsRoutes);
+app.use(`/${API_PREFIX}/messages`, messagesRoutes);
+app.use(`/${API_PREFIX}/sessions`, sessionRoutes);
+app.use(`/${API_PREFIX}/mockingproducts`, mockingProducts);
+app.use(`/${API_PREFIX}/sms`, smsRoutes);
+app.use('/', viewRoutes);
 
-// Conexión a MongoDB
-const connection = mongoose
-  .connect(process.env.URI_ATLAS)
-  .then(() => {
-    console.log("Conexión a MongoDB exitosa");
-  })
-  .catch((err) => {
-    console.error("Error conectando a MongoDB:", err);
-  });
+// Start server
+const server = app.listen(PORT, () => {
+    expressRoutemap(app);
+    console.log(`Servidor corriendo en ==> ${HOST}:${PORT}`);
+});
 
+// Initialize socket.io
+const io = new Server(server);
+app.set("io",  io);
+
+// Initialize Passport
+initializePassport()
+app.use(passport.initialize())

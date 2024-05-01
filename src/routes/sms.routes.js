@@ -1,7 +1,8 @@
-const express = require("express");
-const router = express.Router();
-const smsController = require("../controllers/sms.controller");
+import { Router } from 'express';
+import smsController from "../controllers/sms.controller.js"
+const smsRoutes = Router();
 
-router.post("/send", smsController.sendMensaje);
+smsRoutes.post('/', smsController);
 
-module.exports = router;
+export default smsRoutes;
+

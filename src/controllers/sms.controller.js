@@ -1,21 +1,23 @@
+import twilio from 'twilio';
+
 const accountSid = process.env.TWILIO_ACCOUNT_SID;
 const authToken = process.env.TWILIO_AUTH_TOKEN;
-const client = require('twilio')(accountSid, authToken);
+const client = twilio(accountSid, authToken);
 
-
-exports.sendMensaje = async (req, res) => {
+const sendMensaje = async (req, res) => {
     try {
-        let result = await client.messages
+        let message = await client.messages
             .create({
                 body: req.body.message,
                 from: process.env.SMS_PHONE,
                 to: req.body.to
-            })            
-            .then(message => console.log(message.sid));
-        console.log(result);
+            });
+        console.log(message.sid);
 
-        res.status(200).json({ message: "SMS sent successfully",
-    cuerpo: result.body});
+        res.status(200).json({
+            message: "SMS sent successfully",
+            sid: message.sid
+        });
 
     } catch (error) {
         console.error(error);
@@ -23,4 +25,4 @@ exports.sendMensaje = async (req, res) => {
     }
 };
 
-
+export default  sendMensaje;

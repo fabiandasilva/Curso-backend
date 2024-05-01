@@ -1,18 +1,16 @@
-const passport = require("passport");
-const GithubStrategy = require("passport-github2");
-const usersModel = require("../dao/models/users.model");
-const jwt = require("passport-jwt");
-const { SECRET_JWT } = require("../utils/jwt");
-const local = require("passport-local");
-const { isValidPassword, createHash } = require("../utils/encrypt");
+import passport from "passport";
+import passportLocal from "passport-local";
+import GithubStrategy from "passport-github2";
+import { userService } from "../repository/index.js";
+import passportJwt from "passport-jwt";
+import { JWT_SECRET, GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET } from "./config.js";
 
+const JWTStrategy = passportJwt.Strategy;
+const secret = JWT_SECRET
 
+const localStrategy = passportLocal.Strategy;
 
 const initializePassport = () => {
-  const JWTStrategy = jwt.Strategy;
-  const ExtractJWT = jwt.ExtractJwt;
-  const localStrategy = local.Strategy;
-
   passport.use(
     "register",
     new localStrategy(
@@ -21,40 +19,26 @@ const initializePassport = () => {
         usernameField: "email",
       },
       async (req, username, password, done) => {
-        console.log(
-          "REGISTER STRATEGY",
-          username
-        );
 
-        const { first_name, last_name, email, age, role } = req.body;
+        const { first_name, last_name, age, email } = req.body;
 
         try {
-          let user = await usersModel.findOne({ email });
+          let user = await userService.checkUser(email)
           if (user) {
             return done(null, false);
           }
-          const pswHashed = await createHash(password);
 
-          const addUser = {
-            first_name,
-            last_name,
-            email,
-            age,
-            password: pswHashed,
-            role
-          };
-
-          const newUser = await usersModel.create(addUser);
+          const newUser = await userService.addUser(first_name, last_name, email, Number(age), password)
 
           if (!newUser) {
             return res
               .status(500)
-              .json({ message: "Error al registrar usuario" });
+              .json({ message: `we have some issues register this user` });
           }
 
           return done(null, newUser);
         } catch (error) {
-          return done(error);
+            throw Error(error)
         }
       }
     )
@@ -68,68 +52,8 @@ const initializePassport = () => {
       },
       async (username, password, done) => {
         try {
-          console.log("***LOGIN STRATEGY***");
-          const user = await usersModel.findOne({ email: username });
+          let user = await userService.checkUserAndPass(username, password)
 
-          if (!user) {
-            return done(null, false);
-          }
-          if (!isValidPassword(password, user.password)) {
-            return done(null, false);
-          }
-
-          return done(null, user);
-        } catch (error) {
-          console.log("Error en la estrategia de inicio de sesión:", error);
-          return done(error);
-        }
-      }
-    )
-  );
-
-  passport.use(
-    "jwt",
-    new JWTStrategy(
-      {
-        jwtFromRequest: ExtractJWT.fromAuthHeaderAsBearerToken(),
-        secretOrKey: SECRET_JWT,
-      },
-      async (jwtPayload, done) => {
-        console.log(
-          "🚀 ~ file: passport.config.js:19 ~ jwtPayload:",
-          jwtPayload
-        );
-        try {
-          return done(null, jwtPayload);
-        } catch (error) {
-          return done(error);
-        }
-      }
-    )
-  );
-
-
-  passport.use(
-    "current",
-    new JWTStrategy(
-      {
-        jwtFromRequest: ExtractJWT.fromExtractors([
-          ExtractJWT.fromAuthHeaderAsBearerToken(),
-          (req) => {
-            if (req && req.cookies) {
-              return req.cookies["token"];
-            }
-            return null;
-          },
-        ]),
-        secretOrKey: SECRET_JWT,
-      },
-      async (jwtPayload, done) => {
-        try {
-          const user = await usersModel.findById(jwtPayload.user._id);
-          if (!user) {
-            return done(null, false, { message: "Usuario no encontrado" });
-          }
           return done(null, user);
         } catch (error) {
           return done(error);
@@ -142,51 +66,56 @@ const initializePassport = () => {
     "github",
     new GithubStrategy(
       {
-        clientID: process.env.GITHUB_CLIENT_ID,
-        clientSecret: process.env.GITHUB_TOKEN,
-        callbackURL: "http://localhost:3000/api/session/github/callback",
+        clientID: GITHUB_CLIENT_ID,
+        clientSecret: GITHUB_CLIENT_SECRET,
+        callbackURL: "http://localhost:8080/api/sessions/github/callback",
       },
       async (accessToken, refreshToken, profile, done) => {
-        console.log(
-          "🚀 ~ file: passport.config.js:17 ~ async ~ profile:",
-          profile
-        );
         try {
-          let user = await usersModel.findOne({ email: profile._json?.email });
+          console.log(profile._json)
+          let user = await userService.checkUser(profile._json?.email);
           if (!user) {
             let addNewUser = {
               first_name: profile._json.name,
-              last_name: "",
+              last_name: "No LastName", //areglar esto
               email: profile._json?.email,
-              age: 0,
-              password: "",
+              age: 18,
+              password: "GenerarPassHasheadaRandom", //y esto
             };
-            let newUser = await usersModel.create(addNewUser);
+            console.log(addNewUser)
+            let newUser = await userService.addUser(addNewUser.first_name, addNewUser.last_name, addNewUser.email, addNewUser.age, addNewUser.password);
             done(null, newUser);
           } else {
-            // ya existia el usuario
             done(null, user);
           }
         } catch (error) {
-          console.log("🚀 ~ file: passport.config.js:39 ~ error:", error);
-
           done(error);
         }
-
       }
-
     )
-
   );
 
-  passport.serializeUser((user, done) => {
-    done(null, user._id);
-  });
+  const cookieExtractor = req => {
+    let token = null 
 
-  passport.deserializeUser(async (id, done) => {
-    let user = await usersModel.findById({ _id: id });
-    done(null, user);
-  });
+    if (req && req.cookies) {
+        token = req.signedCookies['jwt']
+    }
+
+    return token
+}
+
+  passport.use('jwt', new JWTStrategy({
+  jwtFromRequest: cookieExtractor,
+  secretOrKey: secret
+}, async (jwtPayload, done) => {
+  try {
+    done(null, jwtPayload)
+  } catch (error) {
+    done(error)
+  }
+}))
+
 };
 
-module.exports = initializePassport;
+export default initializePassport;

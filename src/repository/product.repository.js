@@ -1,47 +1,28 @@
-import productModel from "../model/product.model.js";
+import ProductDTO from "../dto/product.dto.js"
 
-export default class ProductRepositoryDao {
-  constructor(dao) {
-    this.dao = dao;
-  }
-
-  getAllProducts = async () => {
-    try {
-      const products = await productModel.find({});
-      return products;
-    } catch (error) {
-      console.log("🚀 ~ ProductRepositoryDao ~ getAllProducts= ~ error:", error)
-      throw error;
+export default class ProductRepository {
+    constructor(dao){
+        this.dao = dao
     }
-  };
 
-  getProductById = async (pId) => {
-    try {
-      const productData = await productModel.findById({ _id: pId });
-      return productData;
-    } catch (error) {
-      console.log("🚀 ~ ProductRepositoryDao ~ getProductById= ~ error:", error)
-      throw error;
+    getProducts = async (page, limit, sort, query, url) => {
+        return this.dao.getProducts(page, limit, sort, query, url)
     }
-  };
 
-  createProduct = async (productBodyDto) => {
-    try {
-      const newProduct = await productModel.create(productBodyDto);
-      return newProduct;
-    } catch (error) {
-      console.log("🚀 ~ ProductRepositoryDao ~ createProduct= ~ error:", error)
-      throw error;
+    addProduct = async (product) => {
+        let newProduct = new ProductDTO(product)
+        return this.dao.addProduct(newProduct)
     }
-  };
 
-  deleteProductById = async (pId) => {
-    try {
-      const deleteP = await productModel.deleteOne({ _id: pId });
-      return deleteP;
-    } catch (error) {
-      console.log("🚀 ~ ProductRepositoryDao ~ deleteProductById ~ error:", error)
-      throw error;
+    getProductById = async (id) => {
+        return this.dao.getProductById(id)
     }
-  };
+
+    updateProduct = async (id, field, edit) => {
+        return this.dao.updateProduct(id, field, edit)
+    }
+
+    deleteProduct = async (id) => {
+        return this.dao.deleteProduct(id)
+    }
 }

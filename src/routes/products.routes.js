@@ -1,16 +1,21 @@
-const express = require("express");
-const router = express.Router();
-// const uploader = require("../utils/multer");
-const productController = require("../controllers/products.controllers");
+import { Router } from "express"
+import { authMdw } from "../middleware/auth.middleware.js"
+import { getProductsCtrl,
+    getProductsByIdCtrl,
+    addProductCtrl,
+    updateProductCtrl,
+    deleteProductCtrl } from "../controllers/products.controller.js"
 
-router.get(`/`, productController.getProductsCtrl);
-router.get(`/:pid`, productController.getProductByIdCtrl);
-router.post(
-  "/",
-  /* uploader.array("thumbnail"), */ productController.addProductCtrl
-);
+const productsRoutes = Router()
 
-router.put("/:pid", productController.updateProductCtrl);
-router.delete("/:pid", productController.deleteProductCtrl);
+productsRoutes.get("/", authMdw(['PUBLIC']), getProductsCtrl)
 
-module.exports = router;
+productsRoutes.get("/:pid", authMdw(['PUBLIC']), getProductsByIdCtrl)
+
+productsRoutes.post("/", authMdw(['ADMIN']), addProductCtrl)
+
+productsRoutes.put("/:pid", authMdw(['ADMIN']), updateProductCtrl)
+
+productsRoutes.delete("/:pid", authMdw(['ADMIN']), deleteProductCtrl)
+
+export default productsRoutes
